@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <Folder Include="Application\Events\" />
-    <Folder Include="Controllers\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

@@ -1,28 +1,25 @@
 ﻿using Core.Communication;
 using Gateway.API.Extensions;
-using Gateway.API.Models;
 using Gateway.API.Services.Interfaces;
 using Microsoft.Extensions.Options;
 
 namespace Gateway.API.Services;
 
-public class LancamentoService : Service, ILancamentoService
+public class ConsolidacaoService : Service, IConsolidacaoService
 {
     private readonly HttpClient _httpClient;
 
-    public LancamentoService(HttpClient httpClient, IOptions<AppServicesSettings> settings)
+    public ConsolidacaoService(HttpClient httpClient, IOptions<AppServicesSettings> settings)
     {
         _httpClient = httpClient;
-        _httpClient.BaseAddress = new Uri(settings.Value.LancamentoUrl);
+        _httpClient.BaseAddress = new Uri(settings.Value.ConsolidacaoUrl);
     }
 
-    public async Task<ResponseResult> AdicionarLancamento(LancamentoRequest lancamento)
+    public async Task<ResponseResult> ObterConsolidacaoDoDia()
     {
-        var itemContent = ObterConteudo(lancamento);
-
         Console.WriteLine("Preparando para enviar o lançamento.");
 
-        var response = await _httpClient.PostAsync("/api/Lancamento/lancamentos-mediator/", itemContent);
+        var response = await _httpClient.GetAsync("/api/Consolidcao/consolidacao-dia/");
 
         Console.WriteLine($"Resposta recebida: {response.StatusCode}");
 
@@ -36,5 +33,4 @@ public class LancamentoService : Service, ILancamentoService
         Console.WriteLine("Lançamento adicionado com sucesso.");
         return RetornoOk();
     }
-
 }

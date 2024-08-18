@@ -1,5 +1,6 @@
 ﻿using Gateway.API.Extensions;
 using Gateway.API.Services;
+using Gateway.API.Services.Interfaces;
 using Polly;
 using WebApi.Core.Extensions;
 using WebApi.Core.Usuario;
