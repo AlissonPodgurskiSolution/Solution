@@ -3,41 +3,34 @@ using NetDevPack.Security.JwtSigningCredentials.AspNetCore;
 using WebApi.Core.Identidade;
 using WebApi.Core.Usuario;
 
-namespace Identidade.API.Configuration
+namespace Identidade.API.Configuration;
+
+public static class ApiConfig
 {
-    public static class ApiConfig
+    public static IServiceCollection AddApiConfiguration(this IServiceCollection services)
     {
-        public static IServiceCollection AddApiConfiguration(this IServiceCollection services)
-        {
-            services.AddControllers();
+        services.AddControllers();
 
-            services.AddScoped<AuthenticationService>();
-            services.AddScoped<IAspNetUser, AspNetUser>();
+        services.AddScoped<AuthenticationService>();
+        services.AddScoped<IAspNetUser, AspNetUser>();
 
-            return services;
-        }
+        return services;
+    }
 
-        public static IApplicationBuilder UseApiConfiguration(this IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+    public static IApplicationBuilder UseApiConfiguration(this IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
-            app.UseHttpsRedirection();
+        app.UseHttpsRedirection();
 
-            app.UseRouting();
+        app.UseRouting();
 
-            app.UseAuthConfiguration();
+        app.UseAuthConfiguration();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-            
-            app.UseJwksDiscovery();
+        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
-            return app;
-        }
+        app.UseJwksDiscovery();
+
+        return app;
     }
 }

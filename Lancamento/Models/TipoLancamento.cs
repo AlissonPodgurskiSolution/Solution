@@ -2,6 +2,6 @@
 
 public enum TipoLancamento
 {
-    Credito,
-    Debito
+    Credito = 0,
+    Debito = 1
 }

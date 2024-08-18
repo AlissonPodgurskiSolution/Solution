@@ -1,46 +1,39 @@
 ﻿using Gateway.API.Extensions;
 using WebApi.Core.Identidade;
 
-namespace Gateway.API.Configuration
+namespace Gateway.API.Configuration;
+
+public static class ApiConfig
 {
-    public static class ApiConfig
+    public static void AddApiConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
-        public static void AddApiConfiguration(this IServiceCollection services, IConfiguration configuration)
+        services.AddControllers();
+
+        services.Configure<AppServicesSettings>(configuration);
+
+        services.AddCors(options =>
         {
-            services.AddControllers();
+            options.AddPolicy("Total",
+                builder =>
+                    builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+        });
+    }
 
-            services.Configure<AppServicesSettings>(configuration);
+    public static void UseApiConfiguration(this IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment()) app.UseDeveloperExceptionPage();
 
-            services.AddCors(options =>
-            {
-                options.AddPolicy("Total",
-                    builder =>
-                        builder
-                            .AllowAnyOrigin()
-                            .AllowAnyMethod()
-                            .AllowAnyHeader());
-            });
-        }
+        app.UseHttpsRedirection();
 
-        public static void UseApiConfiguration(this IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+        app.UseRouting();
 
-            app.UseHttpsRedirection();
+        app.UseCors("Total");
 
-            app.UseRouting();
+        app.UseAuthConfiguration();
 
-            app.UseCors("Total");
-
-            app.UseAuthConfiguration();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-        }
+        app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
     }
 }

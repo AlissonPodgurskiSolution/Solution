@@ -1,5 +1,7 @@
-﻿using Lancamento.API.Models;
+﻿using Lancamento.API.Application.Comands;
+using Lancamento.API.Models;
 using Microsoft.AspNetCore.Mvc;
+using NetDevPack.Mediator;
 using WebApi.Core.Controllers;
 
 namespace Lancamento.API.Controllers;
@@ -9,48 +11,17 @@ namespace Lancamento.API.Controllers;
 public class LancamentoController : MainController
 {
     private readonly ILancamentoRepository _lancamentoRepository;
+    private readonly IMediatorHandler _mediator;
 
-    public LancamentoController(ILancamentoRepository lancamentoRepository)
+    public LancamentoController(IMediatorHandler mediator)
     {
-        _lancamentoRepository = lancamentoRepository;
+        _mediator = mediator;
     }
 
-    [HttpGet("lancamentos")]
-    public async Task<PagedResult<Models.Lancamento>> Index([FromQuery] int ps = 10, [FromQuery] int page = 1,
-        [FromQuery] string q = null)
+
+    [HttpPost("lancamentos-mediator")]
+    public async Task<IActionResult> CriarLancamento(LancamentoCommand lancamento)
     {
-        return await _lancamentoRepository.ObterTodos(ps, page, q);
-    }
-
-    [HttpGet("lancamentos/{id}")]
-    public async Task<Models.Lancamento> DetalheLancamento(Guid id)
-    {
-        return await _lancamentoRepository.ObterPorId(id);
-    }
-
-    [HttpGet("lancamentos/lista/{ids}")]
-    public async Task<IEnumerable<Models.Lancamento>> ObterLancamentosPorId(string ids)
-    {
-        return await _lancamentoRepository.ObterLancamentosPorId(ids);
-    }
-
-    [HttpPost("lancamentos")]
-    public ActionResult CriarLancamento([FromBody] Models.Lancamento lancamento)
-    {
-        if (!ModelState.IsValid) return CustomResponse(ModelState);
-
-        _lancamentoRepository.Adicionar(lancamento);
-        return CustomResponse(lancamento);
-    }
-
-    [HttpPut("lancamentos/{id}")]
-    public ActionResult AtualizarLancamento(Guid id, [FromBody] Models.Lancamento lancamento)
-    {
-        if (id != lancamento.Id) return BadRequest("O ID do lançamento não corresponde.");
-
-        if (!ModelState.IsValid) return CustomResponse(ModelState);
-
-        _lancamentoRepository.Atualizar(lancamento);
-        return CustomResponse(lancamento);
+        return CustomResponse(await _mediator.SendCommand(lancamento));
     }
 }

@@ -1,46 +1,70 @@
+using System.Text.Json.Serialization;
 using Lancamento.API.Configuration;
+using Lancamento.API.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using WebApi.Core.Identidade;
+using MediatR;
 
-namespace Lancamento.API
+namespace Lancamento.API;
+
+public class Startup
 {
-    public class Startup
+    public Startup(IHostEnvironment hostEnvironment)
     {
-        public IConfiguration Configuration { get; }
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(hostEnvironment.ContentRootPath)
+            .AddJsonFile("appsettings.json", true, true)
+            .AddJsonFile($"appsettings.{hostEnvironment.EnvironmentName}.json", true, true)
+            .AddEnvironmentVariables();
 
-        public Startup(IHostEnvironment hostEnvironment)
-        {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(hostEnvironment.ContentRootPath)
-                .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{hostEnvironment.EnvironmentName}.json", true, true)
-                .AddEnvironmentVariables();
+        if (hostEnvironment.IsDevelopment()) builder.AddUserSecrets<Startup>();
 
-            if (hostEnvironment.IsDevelopment())
+        Configuration = builder.Build();
+    }
+
+    public IConfiguration Configuration { get; }
+
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddApiConfiguration(Configuration);
+
+        services.AddMessageBusConfiguration(Configuration);
+
+        services.AddJwtConfiguration(Configuration);
+
+        services.AddSwaggerConfiguration();
+
+        services.AddMediatR(typeof(Startup));
+
+        services.RegisterServices();
+
+        services.AddMessageBusConfiguration(Configuration);
+
+        services.AddControllers()
+            .AddJsonOptions(options =>
             {
-                builder.AddUserSecrets<Startup>();
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+        {
+            var context = serviceScope.ServiceProvider.GetRequiredService<LancamentoContext>();
+            try
+            {
+                context.Database.Migrate();
             }
-
-            Configuration = builder.Build();
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao aplicar migrações: {ex.Message}");
+            }
         }
 
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddApiConfiguration(Configuration);
+        app.UseSwaggerConfiguration();
 
-            services.AddMessageBusConfiguration(Configuration);
-
-            services.AddJwtConfiguration(Configuration);
-
-            services.AddSwaggerConfiguration();
-
-            services.RegisterServices();
-        }
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            app.UseSwaggerConfiguration();
-
-            app.UseApiConfiguration(env);
-        }
+        app.UseApiConfiguration(env);
     }
 }

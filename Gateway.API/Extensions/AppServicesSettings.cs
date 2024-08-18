@@ -1,7 +1,6 @@
-﻿namespace Gateway.API.Extensions
+﻿namespace Gateway.API.Extensions;
+
+public class AppServicesSettings
 {
-    public class AppServicesSettings
-    {
-        public string LancamentoUrl { get; set; }
-    }
+    public string LancamentoUrl { get; set; }
 }

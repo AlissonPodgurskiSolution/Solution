@@ -1,59 +1,54 @@
 using Identidade.API.Configuration;
 using Identidade.API.Data;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
-namespace Identidade.API
+namespace Identidade.API;
+
+public class Startup
 {
-    public class Startup
+    public Startup(IHostEnvironment hostEnvironment)
     {
-        public IConfiguration Configuration { get; }
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(hostEnvironment.ContentRootPath)
+            .AddJsonFile("appsettings.json", true, true)
+            .AddJsonFile($"appsettings.{hostEnvironment.EnvironmentName}.json", true, true)
+            .AddEnvironmentVariables();
 
-        public Startup(IHostEnvironment hostEnvironment)
+        if (hostEnvironment.IsDevelopment()) builder.AddUserSecrets<Startup>();
+
+        Configuration = builder.Build();
+    }
+
+    public IConfiguration Configuration { get; }
+
+    public void ConfigureServices(IServiceCollection services)
+    {
+        services.AddIdentityConfiguration(Configuration);
+
+        services.AddApiConfiguration();
+
+        services.AddSwaggerConfiguration();
+
+        services.AddMessageBusConfiguration(Configuration);
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(hostEnvironment.ContentRootPath)
-                .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{hostEnvironment.EnvironmentName}.json", true, true)
-                .AddEnvironmentVariables();
-
-            if (hostEnvironment.IsDevelopment())
+            var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            try
             {
-                builder.AddUserSecrets<Startup>();
+                context.Database.Migrate();
             }
-
-            Configuration = builder.Build();
-        }
-
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddIdentityConfiguration(Configuration);
-
-            services.AddApiConfiguration();
-
-            services.AddSwaggerConfiguration();
-
-            services.AddMessageBusConfiguration(Configuration);
-        }
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            catch (Exception ex)
             {
-                var context = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                try
-                {
-                    context.Database.Migrate();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erro ao aplicar migrações: {ex.Message}");
-                }
+                Console.WriteLine($"Erro ao aplicar migrações: {ex.Message}");
             }
-
-            app.UseSwaggerConfiguration();
-            
-            app.UseApiConfiguration(env);
         }
+
+        app.UseSwaggerConfiguration();
+
+        app.UseApiConfiguration(env);
     }
 }

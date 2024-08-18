@@ -1,6 +1,5 @@
 ﻿using Core.Messages.Integration;
 using EasyNetQ;
-using EasyNetQ.Internals;
 
 namespace MessageBus;
 

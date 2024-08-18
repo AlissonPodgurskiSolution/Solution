@@ -1,34 +1,29 @@
 ﻿using System.Net.Http.Headers;
 using WebApi.Core.Usuario;
 
-namespace Gateway.API.Extensions
+namespace Gateway.API.Extensions;
+
+public class HttpClientAuthorizationDelegatingHandler : DelegatingHandler
 {
-    public class HttpClientAuthorizationDelegatingHandler : DelegatingHandler
+    private readonly IAspNetUser _aspNetUser;
+
+    public HttpClientAuthorizationDelegatingHandler(IAspNetUser aspNetUser)
     {
-        private readonly IAspNetUser _aspNetUser;
+        _aspNetUser = aspNetUser;
+    }
 
-        public HttpClientAuthorizationDelegatingHandler(IAspNetUser aspNetUser)
-        {
-            _aspNetUser = aspNetUser;
-        }
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+        CancellationToken cancellationToken)
+    {
+        var authorizationHeader = _aspNetUser.ObterHttpContext().Request.Headers["Authorization"];
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            var authorizationHeader = _aspNetUser.ObterHttpContext().Request.Headers["Authorization"];
+        if (!string.IsNullOrEmpty(authorizationHeader))
+            request.Headers.Add("Authorization", new List<string> { authorizationHeader });
 
-            if (!string.IsNullOrEmpty(authorizationHeader))
-            {
-                request.Headers.Add("Authorization", new List<string>() { authorizationHeader });
-            }
+        var token = _aspNetUser.ObterUserToken();
 
-            var token = _aspNetUser.ObterUserToken();
+        if (token != null) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            if (token != null)
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
-            return await base.SendAsync(request, cancellationToken);
-        }
+        return await base.SendAsync(request, cancellationToken);
     }
 }

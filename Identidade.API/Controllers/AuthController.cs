@@ -1,104 +1,93 @@
-﻿using Core.Messages.Integration;
-using Identidade.API.Models;
+﻿using Identidade.API.Models;
 using Identidade.API.Services;
 using MessageBus;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Core.Controllers;
 
-namespace Identidade.API.Controllers
+namespace Identidade.API.Controllers;
+
+[Route("api/identidade")]
+public class AuthController : MainController
 {
-    [Route("api/identidade")]
-    public class AuthController : MainController
+    private readonly AuthenticationService _authenticationService;
+    private readonly IMessageBus _bus;
+
+    public AuthController(
+        AuthenticationService authenticationService,
+        IMessageBus bus)
     {
-        private readonly AuthenticationService _authenticationService;
-        private readonly IMessageBus _bus;
+        _authenticationService = authenticationService;
+        _bus = bus;
+    }
 
-        public AuthController(
-            AuthenticationService authenticationService,
-            IMessageBus bus)
+    [HttpPost("nova-conta")]
+    public async Task<ActionResult> Registrar(UsuarioRegistro usuarioRegistro)
+    {
+        if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+        var user = new IdentityUser
         {
-            _authenticationService = authenticationService;
-            _bus = bus;
-        }
+            UserName = usuarioRegistro.Email,
+            Email = usuarioRegistro.Email,
+            EmailConfirmed = true
+        };
 
-        [HttpPost("nova-conta")]
-        public async Task<ActionResult> Registrar(UsuarioRegistro usuarioRegistro)
+        var result = await _authenticationService.UserManager.CreateAsync(user, usuarioRegistro.Senha);
+
+        if (result.Succeeded) return CustomResponse(await _authenticationService.GerarJwt(usuarioRegistro.Email));
+
+        foreach (var error in result.Errors) AdicionarErroProcessamento(error.Description);
+
+        return CustomResponse();
+    }
+
+    [HttpPost("autenticar")]
+    public async Task<ActionResult> Login(UsuarioLogin usuarioLogin)
+    {
+        try
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
-            var user = new IdentityUser
-            {
-                UserName = usuarioRegistro.Email,
-                Email = usuarioRegistro.Email,
-                EmailConfirmed = true
-            };
+            var result = await _authenticationService.SignInManager.PasswordSignInAsync(usuarioLogin.Email,
+                usuarioLogin.Senha,
+                false, true);
 
-            var result = await _authenticationService.UserManager.CreateAsync(user, usuarioRegistro.Senha);
+            if (result.Succeeded) return CustomResponse(await _authenticationService.GerarJwt(usuarioLogin.Email));
 
-            if (result.Succeeded)
+            if (result.IsLockedOut)
             {
-                return CustomResponse(await _authenticationService.GerarJwt(usuarioRegistro.Email));
+                AdicionarErroProcessamento("Usuário temporariamente bloqueado por tentativas inválidas");
+                return CustomResponse();
             }
 
-            foreach (var error in result.Errors)
-            {
-                AdicionarErroProcessamento(error.Description);
-            }
+            AdicionarErroProcessamento("Usuário ou Senha incorretos");
+            return CustomResponse();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 
+    [HttpPost("refresh-token")]
+    public async Task<ActionResult> RefreshToken([FromBody] string refreshToken)
+    {
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            AdicionarErroProcessamento("Refresh Token inválido");
             return CustomResponse();
         }
 
-        [HttpPost("autenticar")]
-        public async Task<ActionResult> Login(UsuarioLogin usuarioLogin)
+        var token = await _authenticationService.ObterRefreshToken(Guid.Parse(refreshToken));
+
+        if (token is null)
         {
-            try
-            {
-                if (!ModelState.IsValid) return CustomResponse(ModelState);
-
-                var result = await _authenticationService.SignInManager.PasswordSignInAsync(usuarioLogin.Email, usuarioLogin.Senha,
-                    false, true);
-
-                if (result.Succeeded)
-                {
-                    return CustomResponse(await _authenticationService.GerarJwt(usuarioLogin.Email));
-                }
-
-                if (result.IsLockedOut)
-                {
-                    AdicionarErroProcessamento("Usuário temporariamente bloqueado por tentativas inválidas");
-                    return CustomResponse();
-                }
-
-                AdicionarErroProcessamento("Usuário ou Senha incorretos");
-                return CustomResponse();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-
+            AdicionarErroProcessamento("Refresh Token expirado");
+            return CustomResponse();
         }
 
-        [HttpPost("refresh-token")]
-        public async Task<ActionResult> RefreshToken([FromBody] string refreshToken)
-        {
-            if (string.IsNullOrEmpty(refreshToken))
-            {
-                AdicionarErroProcessamento("Refresh Token inválido");
-                return CustomResponse();
-            }
-
-            var token = await _authenticationService.ObterRefreshToken(Guid.Parse(refreshToken));
-
-            if (token is null)
-            {
-                AdicionarErroProcessamento("Refresh Token expirado");
-                return CustomResponse();
-            }
-
-            return CustomResponse(await _authenticationService.GerarJwt(token.Username));
-        }
+        return CustomResponse(await _authenticationService.GerarJwt(token.Username));
     }
 }

@@ -1,51 +1,38 @@
 ﻿using System.Security.Claims;
 
-namespace WebApi.Core.Usuario
+namespace WebApi.Core.Usuario;
+
+public static class ClaimsPrincipalExtensions
 {
-    public static class ClaimsPrincipalExtensions
+    public static string GetUserId(this ClaimsPrincipal principal)
     {
-        public static string GetUserId(this ClaimsPrincipal principal)
-        {
-            if (principal == null)
-            {
-                throw new ArgumentException(nameof(principal));
-            }
+        if (principal == null) throw new ArgumentException(nameof(principal));
 
-            var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
-            return claim?.Value;
-        }
+        var claim = principal.FindFirst(ClaimTypes.NameIdentifier);
+        return claim?.Value;
+    }
 
-        public static string GetUserEmail(this ClaimsPrincipal principal)
-        {
-            if (principal == null)
-            {
-                throw new ArgumentException(nameof(principal));
-            }
+    public static string GetUserEmail(this ClaimsPrincipal principal)
+    {
+        if (principal == null) throw new ArgumentException(nameof(principal));
 
-            var claim = principal.FindFirst("email");
-            return claim?.Value;
-        }
+        var claim = principal.FindFirst("email");
+        return claim?.Value;
+    }
 
-        public static string GetUserToken(this ClaimsPrincipal principal)
-        {
-            if (principal == null)
-            {
-                throw new ArgumentException(nameof(principal));
-            }
+    public static string GetUserToken(this ClaimsPrincipal principal)
+    {
+        if (principal == null) throw new ArgumentException(nameof(principal));
 
-            var claim = principal.FindFirst("JWT");
-            return claim?.Value;
-        }
+        var claim = principal.FindFirst("JWT");
+        return claim?.Value;
+    }
 
-        public static string GetUserRefreshToken(this ClaimsPrincipal principal)
-        {
-            if (principal == null)
-            {
-                throw new ArgumentException(nameof(principal));
-            }
+    public static string GetUserRefreshToken(this ClaimsPrincipal principal)
+    {
+        if (principal == null) throw new ArgumentException(nameof(principal));
 
-            var claim = principal.FindFirst("RefreshToken");
-            return claim?.Value;
-        }
+        var claim = principal.FindFirst("RefreshToken");
+        return claim?.Value;
     }
 }

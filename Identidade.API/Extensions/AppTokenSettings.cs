@@ -1,7 +1,6 @@
-﻿namespace Identidade.API.Extensions
+﻿namespace Identidade.API.Extensions;
+
+public class AppTokenSettings
 {
-    public class AppTokenSettings
-    {
-        public int RefreshTokenExpiration { get; set; }
-    }
+    public int RefreshTokenExpiration { get; set; }
 }
