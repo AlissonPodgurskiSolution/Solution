@@ -1,4 +1,5 @@
-﻿using Lancamento.API.Models;
+﻿using Core.Models;
+using Lancamento.API.Models;
 using Microsoft.EntityFrameworkCore;
 using NetDevPack.Data;
 

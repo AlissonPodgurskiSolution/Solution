@@ -1,4 +1,4 @@
-﻿namespace Lancamento.API.Models;
+﻿namespace Core.Models;
 
 public class PagedResult<T> where T : class
 {

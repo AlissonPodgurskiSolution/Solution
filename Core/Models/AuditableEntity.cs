@@ -1,6 +1,6 @@
 ﻿using NetDevPack.Domain;
 
-namespace Lancamento.API.Models;
+namespace Core.Models;
 
 public abstract class AuditableEntity : Entity
 {

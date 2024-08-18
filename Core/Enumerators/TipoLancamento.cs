@@ -1,4 +1,4 @@
-﻿namespace Lancamento.API.Models;
+﻿namespace Core.Enumerators;
 
 public enum TipoLancamento
 {

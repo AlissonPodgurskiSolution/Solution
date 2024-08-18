@@ -3,11 +3,12 @@ using Core.Enumerators;
 using Core.Models;
 using NetDevPack.Domain;
 
-namespace Lancamento.API.Models;
+namespace Consolidacao.API.Models;
 
-public class Lancamento : AuditableEntity, IAggregateRoot
+public class LancamentoConsolidacao : AuditableEntity, IAggregateRoot
 {
-    public Lancamento(DateTime data, TipoLancamento tipo, decimal valor, string descricao = null)
+    public LancamentoConsolidacao(DateTime data, TipoLancamento tipo, decimal valor, string descricao = null,
+        Guid lancamentoId = default)
     {
         Id = Guid.NewGuid();
         Data = data;
@@ -16,9 +17,11 @@ public class Lancamento : AuditableEntity, IAggregateRoot
         Descricao = descricao;
 
         SetCreatedInfo(DateTime.UtcNow, "System");
+        LancamentoId = lancamentoId;
     }
 
     public Guid Id { get; private set; }
+    public Guid LancamentoId { get; private set; }
     public DateTime Data { get; private set; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

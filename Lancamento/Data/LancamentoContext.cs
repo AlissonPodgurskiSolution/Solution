@@ -1,4 +1,5 @@
-﻿using FluentValidation.Results;
+﻿using Core.Models;
+using FluentValidation.Results;
 using Lancamento.API.Models;
 using Microsoft.EntityFrameworkCore;
 using NetDevPack.Data;

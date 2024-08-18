@@ -38,7 +38,7 @@ public class MessageBus : IMessageBus
         _bus.Subscribe(subscriptionId, onMessage);
     }
 
-    public void SubscribeAsync<T>(string subscriptionId, Func<T, Task> onMessage) where T : class
+    public void SubscribeAsync<T>(string subscriptionId, Func<T, Task> onMessage, bool autoAck) where T : class
     {
         TryConnect();
         _bus.SubscribeAsync(subscriptionId, onMessage);

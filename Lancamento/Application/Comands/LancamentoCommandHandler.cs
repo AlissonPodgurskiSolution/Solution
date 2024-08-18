@@ -1,6 +1,9 @@
-﻿using FluentValidation.Results;
+﻿using Core.Messages.Integration;
+using EasyNetQ;
+using FluentValidation.Results;
 using Lancamento.API.Models;
 using MediatR;
+using MessageBus;
 using NetDevPack.Messaging;
 
 namespace Lancamento.API.Application.Comands;
@@ -9,10 +12,12 @@ public class LancamentoCommandHandler : CommandHandler,
     IRequestHandler<LancamentoCommand, ValidationResult>
 {
     private readonly ILancamentoRepository _lancamentoRepository;
+    private readonly IMessageBus _bus;
 
-    public LancamentoCommandHandler(ILancamentoRepository lancamentoRepository)
+    public LancamentoCommandHandler(ILancamentoRepository lancamentoRepository, IMessageBus bus)
     {
         _lancamentoRepository = lancamentoRepository;
+        _bus = bus;
     }
 
     public async Task<ValidationResult> Handle(LancamentoCommand request, CancellationToken cancellationToken)
@@ -26,6 +31,9 @@ public class LancamentoCommandHandler : CommandHandler,
 
         _lancamentoRepository.Adicionar(lancamento);
         _lancamentoRepository.UnitOfWork.Commit();
+
+        var lancamentoCadastrado = new AdicionarParaConsolidacaoEvent(lancamento.Id, lancamento.Data, lancamento.Tipo, lancamento.Valor, lancamento.Descricao);
+        await _bus.PublishAsync(lancamentoCadastrado);
 
         return ValidationResult;
     }

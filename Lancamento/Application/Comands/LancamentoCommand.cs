@@ -1,4 +1,5 @@
-﻿using Lancamento.API.Models;
+﻿using Core.Enumerators;
+using Lancamento.API.Models;
 using NetDevPack.Messaging;
 
 namespace Lancamento.API.Application.Comands;

@@ -1,4 +1,5 @@
-﻿using NetDevPack.Data;
+﻿using Core.Models;
+using NetDevPack.Data;
 
 namespace Lancamento.API.Models;
 
