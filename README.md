@@ -50,13 +50,12 @@ CQS é implementado de forma que cada operação que altera o estado do sistema 
 
 # Passos para executar o projeto
 ### 1 - Subir imagens
-1. Com o Docker instalado, acessar a raiz do repositório e executar o comando no terminal: <code>docker-compose up</code>.
+1. Com o Docker instalado, acessar a pasta Docker do repositório e executar o comando no terminal: <code>docker-compose up</code>.
     
 2. Verificar se as imagens <code>rabbitmq</code>, <code>sqlserver</code> estão rodando e suas respectivas portas.
 
 3. A senha de acesso ao banco de dados é definido no arquivo <code>.env</code>.
 
-4. Para levantar as instancias do rabbitmq e sqlserver para acessar a pasta docker e rodar o comando docker-compose up.
 
 ### 1 - Atualizar banco de dados (migrations)
 
