@@ -1,8 +1,12 @@
 using Identidade.API.Configuration;
 using Identidade.API.Data;
 using Microsoft.EntityFrameworkCore;
-
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 namespace Identidade.API;
+
 
 public class Startup
 {
@@ -51,4 +55,6 @@ public class Startup
 
         app.UseApiConfiguration(env);
     }
+
+
 }
