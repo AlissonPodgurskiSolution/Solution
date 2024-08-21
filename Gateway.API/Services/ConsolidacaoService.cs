@@ -1,5 +1,6 @@
 ﻿using Core.Communication;
 using Gateway.API.Extensions;
+using Gateway.API.Models;
 using Gateway.API.Services.Interfaces;
 using Microsoft.Extensions.Options;
 
@@ -15,22 +16,36 @@ public class ConsolidacaoService : Service, IConsolidacaoService
         _httpClient.BaseAddress = new Uri(settings.Value.ConsolidacaoUrl);
     }
 
-    public async Task<ResponseResult> ObterConsolidacaoDoDia()
+    public async Task<Consolidacao> ObterConsolidacaoDoDia()
     {
-        Console.WriteLine("Preparando para enviar o lançamento.");
+        Console.WriteLine("Preparando para enviar o Obter Consolidacao Do Dia.");
 
-        var response = await _httpClient.GetAsync("/api/Consolidcao/consolidacao-dia/");
+        var response = await _httpClient.GetAsync("/api/consolidacao/consolidacao-dia/");
 
         Console.WriteLine($"Resposta recebida: {response.StatusCode}");
 
-        if (!TratarErrosResponse(response))
+        if (response.IsSuccessStatusCode)
         {
-            var result = await DeserializarObjetoResponse<ResponseResult>(response);
-            Console.WriteLine("Erro na resposta do servidor.");
-            return result;
-        }
+            // Desserializa o conteúdo da resposta para o objeto Consolidacao
+            var result = await response.Content.ReadFromJsonAsync<Consolidacao>();
 
-        Console.WriteLine("Lançamento adicionado com sucesso.");
-        return RetornoOk();
+            if (result != null)
+            {
+                Console.WriteLine("Obter Consolidacao Do Dia com sucesso.");
+                return result;
+            }
+            else
+            {
+                Console.WriteLine("Falha ao desserializar o objeto Consolidacao.");
+                return null;
+            }
+        }
+        else
+        {
+            Console.WriteLine("Erro na resposta do servidor.");
+            return null;
+        }
     }
+
+
 }

@@ -22,5 +22,12 @@ public static class DependencyInjectionConfig
             .AddPolicyHandler(PollyExtensions.EsperarTentar())
             .AddTransientHttpErrorPolicy(
                 p => p.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
+
+        services.AddHttpClient<IConsolidacaoService, ConsolidacaoService>()
+            .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>()
+            .AllowSelfSignedCertificate()
+            .AddPolicyHandler(PollyExtensions.EsperarTentar())
+            .AddTransientHttpErrorPolicy(
+                p => p.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
     }
 }

@@ -30,9 +30,9 @@ public class FluxoDeCaixaController : MainController
         return result;
     }
 
-    [HttpPost]
+    [HttpGet]
     [Route("obter-consolidacao-dia")]
-    public async Task<ResponseResult> ObterConsolidacaoDia()
+    public async Task<Consolidacao> ObterConsolidacaoDia()
     {
         var result = await _consolidacaoService.ObterConsolidacaoDoDia();
 
